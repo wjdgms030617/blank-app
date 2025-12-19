@@ -186,85 +186,6 @@ def generate_decimals(n, decimals=3, seed=None):
 
 
 st.title("소수점 월드컵")
-st.markdown("가장 작은 소수점을 찾아라! 🎆")
-st.markdown(
-    """
-**게임 방법**  
-
-1. 원하는 대진표 크기를 설정합니다.  
-2. 둘 중 더 작은 소수점을 찾아서 버튼을 클릭하세요.  
-
-
-속닥속닥) 🐰 🐫 🐬 🐧 각 대진마다 부화할 수 있는 캐릭터가 있습니다. 모든 캐릭터를 부화시킬 수 있도록 도전해보세요! 🐰 🐫 🐬 🐧
-    """
-)
-
-if "current_round" not in st.session_state:
-    st.session_state.current_round = []
-if "next_winners" not in st.session_state:
-    st.session_state.next_winners = []
-if "match_index" not in st.session_state:
-    st.session_state.match_index = 0
-if "decimals" in st.session_state:
-    del st.session_state["decimals"]
-if "size" not in st.session_state:
-    st.session_state.size = 36
-if "score" not in st.session_state:
-     st.session_state.score = 0
-if "wrong_matches" not in st.session_state:
-     st.session_state.wrong_matches = []
-if "last_wrong" not in st.session_state:
-     st.session_state.last_wrong = None
-
-with st.sidebar:
-    st.header("설정")
-    stage_labels = {
-        8: ("숲", "🌲"),
-        16: ("사막", "🏜️"),
-        32: ("바다", "🌊"),
-        36: ("얼음", "❄️"),
-    }
-    size_options = [8, 16, 32, 36]
-    size_labels = [f"{n}강 - {stage_labels[n][0]} {stage_labels[n][1]}" for n in size_options]
-    size_idx = 3
-    size_label = st.selectbox("대진표 크기", options=size_labels, index=size_idx)
-    size = size_options[size_labels.index(size_label)]
-    seed = st.number_input("난수 시드 (선택)", value=0, step=1)
-    if seed == 0:
-        seed = None
-    if st.button("토너먼트 시작 / 초기화"):
-        try:
-            st.session_state.size = size
-            nums = []
-            per = size // 3
-            remain = size - per * 3
-            
-            # decimals=1의 최대 고유 개수 고려
-            if size == 36:
-                # 36강 특별 처리: 1자리 10개, 2자리 13개, 3자리 13개
-                nums.extend(generate_decimals(10, decimals=1, seed=(seed+1 if seed is not None else None)))
-                nums.extend(generate_decimals(13, decimals=2, seed=(seed+2 if seed is not None else None)))
-                nums.extend(generate_decimals(13, decimals=3, seed=(seed+3 if seed is not None else None)))
-            else:
-                for d in range(1, 4):
-                    nums.extend(generate_decimals(per, decimals=d, seed=(seed+d if seed is not None else None)))
-                if remain > 0:
-                    for i in range(remain):
-                        d = random.randint(1, 3)
-                        nums.extend(generate_decimals(1, decimals=d, seed=(seed+100+i if seed is not None else None)))
-            
-            random.shuffle(nums)
-            st.session_state.current_round = nums
-            st.session_state.next_winners = []
-            st.session_state.match_index = 0
-            advance_round()
-            st.session_state.score = 0
-            st.session_state.wrong_matches = []
-            st.session_state.last_wrong = None
-            st.rerun()
-        except Exception as e:
-            st.error(f"토너먼트 시작 중 오류 발생: {e}")
-
 
 def advance_round():
     # 마감된 라운드 처리: 잔여 항목(홀수 개)은 부전승
@@ -471,4 +392,84 @@ if st.session_state.current_round:
 
 
 st.markdown("---")
+st.markdown("가장 작은 소수점을 찾아라! 🎆")
+st.markdown(
+    """
+**게임 방법**  
+
+1. 원하는 대진표 크기를 설정합니다.  
+2. 둘 중 더 작은 소수점을 찾아서 버튼을 클릭하세요.  
+
+
+속닥속닥) 🐰 🐫 🐬 🐧 각 대진마다 부화할 수 있는 캐릭터가 있습니다. 모든 캐릭터를 부화시킬 수 있도록 도전해보세요! 🐰 🐫 🐬 🐧
+    """
+)
+
+if "current_round" not in st.session_state:
+    st.session_state.current_round = []
+if "next_winners" not in st.session_state:
+    st.session_state.next_winners = []
+if "match_index" not in st.session_state:
+    st.session_state.match_index = 0
+if "decimals" in st.session_state:
+    del st.session_state["decimals"]
+if "size" not in st.session_state:
+    st.session_state.size = 36
+if "score" not in st.session_state:
+     st.session_state.score = 0
+if "wrong_matches" not in st.session_state:
+     st.session_state.wrong_matches = []
+if "last_wrong" not in st.session_state:
+     st.session_state.last_wrong = None
+
+with st.sidebar:
+    st.header("설정")
+    stage_labels = {
+        8: ("숲", "🌲"),
+        16: ("사막", "🏜️"),
+        32: ("바다", "🌊"),
+        36: ("얼음", "❄️"),
+    }
+    size_options = [8, 16, 32, 36]
+    size_labels = [f"{n}강 - {stage_labels[n][0]} {stage_labels[n][1]}" for n in size_options]
+    size_idx = 3
+    size_label = st.selectbox("대진표 크기", options=size_labels, index=size_idx)
+    size = size_options[size_labels.index(size_label)]
+    seed = st.number_input("난수 시드 (선택)", value=0, step=1)
+    if seed == 0:
+        seed = None
+    if st.button("토너먼트 시작 / 초기화"):
+        try:
+            st.session_state.size = size
+            nums = []
+            per = size // 3
+            remain = size - per * 3
+            
+            # decimals=1의 최대 고유 개수 고려
+            if size == 36:
+                # 36강 특별 처리: 1자리 10개, 2자리 13개, 3자리 13개
+                nums.extend(generate_decimals(10, decimals=1, seed=(seed+1 if seed is not None else None)))
+                nums.extend(generate_decimals(13, decimals=2, seed=(seed+2 if seed is not None else None)))
+                nums.extend(generate_decimals(13, decimals=3, seed=(seed+3 if seed is not None else None)))
+            else:
+                for d in range(1, 4):
+                    nums.extend(generate_decimals(per, decimals=d, seed=(seed+d if seed is not None else None)))
+                if remain > 0:
+                    for i in range(remain):
+                        d = random.randint(1, 3)
+                        nums.extend(generate_decimals(1, decimals=d, seed=(seed+100+i if seed is not None else None)))
+            
+            random.shuffle(nums)
+            st.session_state.current_round = nums
+            st.session_state.next_winners = []
+            st.session_state.match_index = 0
+            advance_round()
+            st.session_state.score = 0
+            st.session_state.wrong_matches = []
+            st.session_state.last_wrong = None
+            st.rerun()
+        except Exception as e:
+            st.error(f"토너먼트 시작 중 오류 발생: {e}")
+
+
 st.caption("제작: 소수점 월드컵 — 0.xxx 형식의 숫자들을 비교해서 최종 승자를 찾습니다.")
