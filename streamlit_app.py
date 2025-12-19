@@ -258,7 +258,6 @@ with st.sidebar:
             st.session_state.next_winners = []
             st.session_state.match_index = 0
             advance_round()
-            return
             st.session_state.score = 0
             st.session_state.wrong_matches = []
             st.session_state.last_wrong = None
@@ -445,7 +444,6 @@ def advance_round():
                     st.session_state.match_index += 1
                     st.session_state.show_correct = False
                     st.session_state.next_winner_buffer = None
-                    advance_round()
                     st.rerun()
             elif st.session_state.get("show_wrong"):
                 correct_answer = st.session_state.get("correct_answer")
