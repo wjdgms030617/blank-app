@@ -229,9 +229,7 @@ with st.sidebar:
     size_idx = 3
     size_label = st.selectbox("대진표 크기", options=size_labels, index=size_idx)
     size = size_options[size_labels.index(size_label)]
-    seed = st.number_input("난수 시드 (선택)", value=0, step=1)
-    if seed == 0:
-        seed = None
+    difficulty = st.selectbox("난이도", options=list(range(1, 11)), index=4)  # 기본값 5
     if st.button("토너먼트 시작 / 초기화"):
         try:
             st.session_state.size = size
@@ -239,21 +237,76 @@ with st.sidebar:
             per = size // 3
             remain = size - per * 3
             
+            # 난이도에 따라 소수점 자리수 분포 결정
+            # 난이도 1: 1자리 많음 (쉬움), 난이도 10: 3자리 많음 (어려움)
+            if difficulty <= 3:
+                # 쉬움: 1자리 위주
+                decimals_dist = [1, 1, 1]
+            elif difficulty <= 5:
+                # 중간: 1자리, 2자리 위주
+                decimals_dist = [1, 2, 2]
+            elif difficulty <= 7:
+                # 어려움: 2자리, 3자리 위주
+                decimals_dist = [2, 2, 3]
+            else:
+                # 매우 어려움: 3자리 위주
+                decimals_dist = [2, 3, 3]
+            
             # decimals=1의 최대 고유 개수 고려
             if size == 36:
-                # 36강 특별 처리: 1자리 10개, 2자리 13개, 3자리 13개
-                nums.extend(generate_decimals(10, decimals=1, seed=(seed+1 if seed is not None else None)))
-                nums.extend(generate_decimals(13, decimals=2, seed=(seed+2 if seed is not None else None)))
-                nums.extend(generate_decimals(13, decimals=3, seed=(seed+3 if seed is not None else None)))
+                # 36강 특별 처리
+                if difficulty <= 3:
+                    nums.extend(generate_decimals(15, decimals=1, seed=difficulty))
+                    nums.extend(generate_decimals(10, decimals=2, seed=difficulty+1))
+                    nums.extend(generate_decimals(11, decimals=3, seed=difficulty+2))
+                elif difficulty <= 5:
+                    nums.extend(generate_decimals(10, decimals=1, seed=difficulty))
+                    nums.extend(generate_decimals(13, decimals=2, seed=difficulty+1))
+                    nums.extend(generate_decimals(13, decimals=3, seed=difficulty+2))
+                elif difficulty <= 7:
+                    nums.extend(generate_decimals(8, decimals=1, seed=difficulty))
+                    nums.extend(generate_decimals(14, decimals=2, seed=difficulty+1))
+                    nums.extend(generate_decimals(14, decimals=3, seed=difficulty+2))
+                else:
+                    nums.extend(generate_decimals(5, decimals=1, seed=difficulty))
+                    nums.extend(generate_decimals(15, decimals=2, seed=difficulty+1))
+                    nums.extend(generate_decimals(16, decimals=3, seed=difficulty+2))
             else:
                 for d in range(1, 4):
-                    nums.extend(generate_decimals(per, decimals=d, seed=(seed+d if seed is not None else None)))
+                    nums.extend(generate_decimals(per, decimals=d, seed=difficulty+d))
                 if remain > 0:
                     for i in range(remain):
                         d = random.randint(1, 3)
-                        nums.extend(generate_decimals(1, decimals=d, seed=(seed+100+i if seed is not None else None)))
+                        nums.extend(generate_decimals(1, decimals=d, seed=difficulty+100+i))
             
             random.shuffle(nums)
+            # 서로 값이 같은 소수(예: 0.1 vs 0.10)가 인접 매치로 나오지 않도록 재배열 시도
+            def avoid_equal_pairs(arr):
+                n = len(arr)
+                # 간단한 그리디 스왑 알고리즘
+                for i in range(0, n - 1, 2):
+                    try:
+                        if float(arr[i]) == float(arr[i+1]):
+                            swapped = False
+                            for j in range(i+2, n):
+                                if float(arr[i]) != float(arr[j]):
+                                    arr[i+1], arr[j] = arr[j], arr[i+1]
+                                    swapped = True
+                                    break
+                                if float(arr[i+1]) != float(arr[j]):
+                                    arr[i], arr[j] = arr[j], arr[i]
+                                    swapped = True
+                                    break
+                            if not swapped:
+                                # 실패하면 섞어서 다시 시도
+                                random.shuffle(arr)
+                                return avoid_equal_pairs(arr)
+                    except Exception:
+                        # 변환 오류시 무시하고 계속
+                        continue
+                return arr
+
+            nums = avoid_equal_pairs(nums)
             st.session_state.current_round = nums
             st.session_state.next_winners = []
             st.session_state.match_index = 0
