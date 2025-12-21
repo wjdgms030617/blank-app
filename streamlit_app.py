@@ -279,6 +279,26 @@ with st.sidebar:
                         d = random.randint(1, 3)
                         nums.extend(generate_decimals(1, decimals=d, seed=difficulty+100+i))
             
+            # 난이도 6~10: 헷갈리는 소수 쌍 추가 (예: 0.038 vs 0.38)
+            if difficulty >= 6:
+                confusing_pairs = [
+                    ("0.1", "0.01"),
+                    ("0.2", "0.02"),
+                    ("0.3", "0.03"),
+                    ("0.4", "0.04"),
+                    ("0.5", "0.05"),
+                    ("0.12", "0.012"),
+                    ("0.23", "0.023"),
+                    ("0.34", "0.034"),
+                    ("0.45", "0.045"),
+                    ("0.56", "0.056"),
+                ]
+                # 난이도에 따라 헷갈리는 쌍 개수 조정 (난이도 높을수록 많음)
+                num_confusing = 5 + (difficulty - 6) // 2  # 난이도 6~10: 5~7개
+                selected_pairs = random.sample(confusing_pairs, min(num_confusing, len(confusing_pairs)))
+                for pair in selected_pairs:
+                    nums.extend(list(pair))
+            
             random.shuffle(nums)
             # 서로 값이 같은 소수(예: 0.1 vs 0.10)가 인접 매치로 나오지 않도록 재배열 시도
             def avoid_equal_pairs(arr):
